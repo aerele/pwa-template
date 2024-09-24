@@ -18,12 +18,6 @@
  ],
  "fields": [
   {
-   "fieldname": "pwa_form_fields",
-   "fieldtype": "Table",
-   "label": "PWA Form Fields",
-   "options": "PWA Form Fields"
-  },
-  {
    "fieldname": "form_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -73,11 +67,17 @@
    "fieldname": "is_child_table",
    "fieldtype": "Check",
    "label": "Is Child Table"
+  },
+  {
+   "fieldname": "pwa_form_fields",
+   "fieldtype": "JSON",
+   "label": "PWA Form Fields",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-07-22 15:16:10.819665",
+ "modified": "2024-09-24 18:12:31.922136",
  "modified_by": "Administrator",
  "module": "PWA Template",
  "name": "PWA Form",

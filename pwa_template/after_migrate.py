@@ -1,6 +1,6 @@
 import os
 import frappe
-import click
+import json
 from frappe.utils import update_progress_bar
 from frappe.modules import import_file
 from frappe.query_builder import DocType
@@ -57,9 +57,14 @@ def import_forms(file_path):
 				(doctype_table.form_name == doc["form_name"]) & (doctype_table.doctype_name == doc["doctype_name"])
 			).run()
 def create_form_records(docdict):
+	overall_json = dict(docdict)
+	
 	docdict["__islocal"] = 1
 	docdict["doctype"] = "PWA Form"
+	docdict.pop("pwa_form_fields")
+
 	doc = frappe.get_doc(docdict)
+	doc.pwa_form_fields=json.dumps(overall_json,indent=4)
 	doc.flags.ignore_version = True
 	doc.flags.ignore_links = True
 	doc.flags.ignore_validate = True
