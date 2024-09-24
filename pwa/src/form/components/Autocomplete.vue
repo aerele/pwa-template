@@ -5,7 +5,7 @@
       <p v-if="field.reqd == 1" class=" text-[12px] text-red-500 pl-1">*</p>
     </div>
     <Autocomplete
-      :options="field.options.split('\n')"
+      :options="typeof field.options === 'string' ? field.options.split('\n') : field.options"
       v-model="field.value"
       size="sm"
       variant="subtle"

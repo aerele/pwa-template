@@ -72,33 +72,54 @@
 	</div>
 </template>
 <script setup>
-import { ref, watch , onMounted} from 'vue';
+import { ref, watch , onMounted, computed} from 'vue';
 import User from "../form/components/User.vue";
 import { FeatherIcon, FormControl, createListResource, createResource } from "frappe-ui";
 import { useRouter } from 'vue-router';
 import { retrieveDoc } from '../utils/check';
 import { landingPage } from '../stores/formStore';
 import formList from '../../public/json/form_list.json'
-// import formList from '../../public/json/form_list.json'
-// import { importAllFiles } from '../utils/check';
 import { retrieveFileJson } from '../utils/check';
+import { apiRetrival } from '../utils/apiRetrival'
 
 
 const store = landingPage();
 const links = ref(store.links);
 
-formList.form_list.forEach((form) => {
 
-	const exists = links.value.some(link => link.doctype === form.doctype_name);
+onMounted( async() => {
+	const apiValue = await apiRetrival();
+	if(apiValue.data ) {
+		Object.values(apiValue.data).forEach((form) => {
+			const exists = links.value.some(link => link.doctype === form.doctype_name);
+				if (!exists){
+					links.value.push({
+						frm: form.form_name,
+						doctype: form.doctype_name,
+					});
+					store.setLinks(links.value);
+				}
+			})
+			const filteredLinks = ref([...links.value]);
 
-	if (!exists) {
-		links.value.push({
-			frm: form.form_name,
-			doctype: form.doctype_name,
+			options.value = filteredLinks.value
+	}
+	else{
+		formList.form_list.forEach((form) => {
+		const exists = links.value.some(link => link.doctype === form.doctype_name);
+
+		if (!exists) {
+			links.value.push({
+				frm: form.form_name,
+				doctype: form.doctype_name,
+			});
+			store.setLinks(links.value);
+		}
 		});
-		store.setLinks(links.value);
 	}
 });
+
+
 
 const inputValue = ref('');
 const showDropdown = ref(false);

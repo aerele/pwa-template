@@ -6,7 +6,7 @@
     </div>
     <Autocomplete
       class=" mt-1"
-      :options="field.options.split('\n')"
+      :options="typeof field.options === 'string' ? field.options.split('\n') : field.options"
       v-model="Value"
       size="sm"
       variant="subtle"

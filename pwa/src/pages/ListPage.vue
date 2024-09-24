@@ -116,7 +116,7 @@
 	</div>
 </template>
 <script setup>
-import { reactive, ref, watch } from 'vue';
+import { reactive, ref, watch, onMounted } from 'vue';
 import { FeatherIcon, createListResource, Dialog, TextInput, Button, Autocomplete, createResource, createDocumentResource } from 'frappe-ui';
 import User from "../form/components/User.vue";
 import { useRoute, useRouter } from 'vue-router';
@@ -124,6 +124,7 @@ import List from '../form/components/List.vue';
 import { listPage } from '../stores/formStore';
 import formList from '../../public/json/form_list.json'
 import { retrieveFileJson } from '../utils/check';
+import { apiRetrival } from '../utils/apiRetrival';
 
 
 const store = listPage()
@@ -143,12 +144,37 @@ const is_active = ref(false)
 const FileJson = ref({})
 
 
-formList.form_list.forEach(async (frm) => {
-      if (frm.form_name === route.query.frmname) {
-        const fileJson = retrieveFileJson(frm.doctype_name);
-		FileJson.value = fileJson;
-      }	
-})
+
+onMounted( async() => {
+	const apiValue = await apiRetrival();
+	if(apiValue.data) {
+		FileJson.value = apiValue.data[route.query.doctype];
+	}else{
+			formList.form_list.forEach(async (frm) => {
+			if (frm.form_name === route.query.frmname) {
+				const fileJson = retrieveFileJson(frm.doctype_name);
+				FileJson.value = fileJson;
+
+			}	
+		})
+	}
+});
+
+
+const submitable = async() => {
+	const Value = await apiRetrival()
+	if(Value.data){
+		let data = Value.data[route.query.doctype];
+		return data.is_submittable;
+	}else{
+		formList.form_list.forEach(async (frm) => {
+			if (frm.form_name === route.query.frmname) {
+				const fileJson = retrieveFileJson(frm.doctype_name);
+				return fileJson.is_submittable;
+			}	
+		})
+	}
+}
 
 
 
@@ -236,7 +262,7 @@ const loadData = () => {
 			}
 	
 			Keys.value = DocT.value.data.Keys
-			const isSubmittable = FileJson.value.is_submittable;
+			const isSubmittable = submitable();
 	
 			reports.value = DocT.value.data.values.map((row) => {
 				const mappedItem = {};

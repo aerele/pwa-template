@@ -1,10 +1,11 @@
-import { reactive, ref, computed, watch } from 'vue';
+import { reactive, ref, computed, watch, onMounted } from 'vue';
 import EventEmitter from './eventemiitor';
 import { useRouter } from 'vue-router';
 import { session } from '../data/session';
 import formLsit from '../../public/json/form_list.json'
 import { createListResource, createResource, createDocumentResource } from 'frappe-ui';
 import { retrieveFileJson } from '../utils/check';
+import { apiRetrival } from '../utils/apiRetrival';
 
 export default class Form extends EventEmitter {
   constructor(doctype, frm, name = null) {
@@ -76,18 +77,31 @@ export default class Form extends EventEmitter {
       })
     })
 
-    formLsit.form_list.forEach(async (frm) => {
-      if (frm.form_name === this.Frm) {
-        
-        const fileJson = await retrieveFileJson(frm.doctype_name);
-        
-        this.JSON = fileJson; 
-        this.data = this.JSON;
-        this.fields = this.JSON.pwa_form_fields;
-        this.submitable = this.JSON.is_submittable;
-        this.child = this.JSON.is_child_table;
-      }
-    });
+    const apiData = await apiRetrival()
+
+    if(apiData.data){
+      const fileJson = apiData.data[this.doctype]
+      this.JSON = fileJson; 
+      this.data = this.JSON;
+      this.fields = this.JSON.pwa_form_fields;
+      this.submitable = this.JSON.is_submittable;
+      this.child = this.JSON.is_child_table;
+    }else{
+      formLsit.form_list.forEach(async (frm) => {
+        if (frm.form_name === this.Frm) {
+          
+          const fileJson = await retrieveFileJson(frm.doctype_name);
+          
+          this.JSON = fileJson; 
+          this.data = this.JSON;
+          this.fields = this.JSON.pwa_form_fields;
+          this.submitable = this.JSON.is_submittable;
+          this.child = this.JSON.is_child_table;
+        }
+      });
+    }
+
+    
     
 
     // const doctype = await exportedData(this.doctype);
