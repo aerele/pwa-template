@@ -80,12 +80,16 @@ export default class Form extends EventEmitter {
     const apiData = await apiRetrival()
 
     if(apiData.data){
-      const fileJson = apiData.data[this.doctype]
-      this.JSON = fileJson; 
-      this.data = this.JSON;
-      this.fields = this.JSON.pwa_form_fields;
-      this.submitable = this.JSON.is_submittable;
-      this.child = this.JSON.is_child_table;
+      apiData.data.forEach((data) => {
+        if(data.doctype_name == this.doctype){
+          const pwa_fields = JSON.parse(data.pwa_form_fields)
+          this.JSON = pwa_fields; 
+          this.data = this.JSON;
+          this.fields = this.JSON.pwa_form_fields;
+          this.submitable = this.JSON.is_submittable;
+          this.child = this.JSON.is_child_table;
+        }
+      })
     }else{
       formLsit.form_list.forEach(async (frm) => {
         if (frm.form_name === this.Frm) {

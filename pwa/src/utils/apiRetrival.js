@@ -1,11 +1,12 @@
-import { createResource } from "frappe-ui";
+import { createResource, createListResource } from "frappe-ui";
 import { ref } from "vue";
 
 export const apiRetrival = async () => {
-    const doc = createResource({
-        url: 'pwa_template.utils.get_form_meta',
-        method: 'GET',
+    const doc = createListResource({
+        doctype: 'PWA Form',
+        fields: ['*']
     });
-    await doc.fetch();
-    return doc; 
+    
+    await doc.reload();
+    return doc;
 }

@@ -148,7 +148,9 @@ const FileJson = ref({})
 onMounted( async() => {
 	const apiValue = await apiRetrival();
 	if(apiValue.data) {
-		FileJson.value = apiValue.data[route.query.doctype];
+		apiValue.data.forEach((value) => {
+			FileJson.value = value.doctype_name == route.query.doctype ? value : null
+		})
 	}else{
 			formList.form_list.forEach(async (frm) => {
 			if (frm.form_name === route.query.frmname) {
@@ -164,7 +166,10 @@ onMounted( async() => {
 const submitable = async() => {
 	const Value = await apiRetrival()
 	if(Value.data){
-		let data = Value.data[route.query.doctype];
+		let data
+		Value.data.forEach((value) => {
+			data = value.doctype_name == route.query.doctype ? value : null;
+		})
 		return data.is_submittable;
 	}else{
 		formList.form_list.forEach(async (frm) => {
@@ -227,60 +232,59 @@ const loadData = () => {
 	const constructedFilters = filter.value.length !== 0 ? filter.value : [];
 	numberOfFilters.value = filter.value.length;
 
-	const Workflow = createResource({
-		url:'pwa_template.utils.get_workFlow',
-		method:'POST',
-		params:{
+	// const Workflow = createResource({
+	// 	url:'pwa_template.utils.get_workFlow',
+	// 	method:'POST',
+	// 	params:{
+	// 		doctype: route.query.doctype,
+	// 	}
+	// })
+	// Workflow.reload()
+	// .then(() => {
+	// 	if (Workflow.data && Object.keys(Workflow.data).length > 0) {
+	// 		is_active.value = Workflow.data.doc[0].is_active;
+	// 	}
+	// })
+	DocT.value = createResource({
+		url: 'frappe.desk.reportview.get',
+		method: 'POST',
+		params: {
 			doctype: route.query.doctype,
+			filters: constructedFilters,
+			fields: ["*"],
+			distinct: false,
+			start: 0,
+			page_length: selectedNumber.value,
+		},
+	});
+	DocT.value.fetch().then(() => {
+		if (DocT.value.data == null){
+			reports.value = [];
+			return;
 		}
-	})
-	Workflow.reload()
-	.then(() => {
-		if (Workflow.data && Object.keys(Workflow.data).length > 0) {
-			is_active.value = Workflow.data.doc[0].is_active;
+		if ( DocT.value.data.length === 0) {
+			reports.value = [];
+			return;
 		}
-		DocT.value = createResource({
-			url: 'frappe.desk.reportview.get',
-			method: 'POST',
-			params: {
-				doctype: route.query.doctype,
-				filters: constructedFilters,
-				fields: ["*"],
-				distinct: false,
-				start: 0,
-				page_length: selectedNumber.value,
-			},
-		});
-		DocT.value.fetch().then(() => {
-			if (DocT.value.data == null){
-				reports.value = [];
-				return;
-			}
-			if ( DocT.value.data.length === 0) {
-				reports.value = [];
-				return;
-			}
-	
-			Keys.value = DocT.value.data.Keys
-			const isSubmittable = submitable();
-	
-			reports.value = DocT.value.data.values.map((row) => {
-				const mappedItem = {};
-				DocT.value.data.keys.forEach((key, index) => {
-					mappedItem[key] = row[index];
-				});
-				return {
-					name: mappedItem.name,
-					owner: mappedItem.owner,
-					creation: mappedItem.creation,
-					docstatus: mappedItem.docstatus,
-					workflow_state: is_active.value ? mappedItem.workflow_state : null,
-					amended_from_value: isSubmittable ? 1 : 0,
-					status: is_active.value ? null : mappedItem.status ? mappedItem.status : null, 
-				};
+		Keys.value = DocT.value.data.keys
+		const isSubmittable = submitable();
+
+		reports.value = DocT.value.data.values.map((row) => {
+			const mappedItem = {};
+			DocT.value.data.keys.forEach((key, index) => {
+				mappedItem[key] = row[index];
 			});
-			store.setReport(reports.value)
-		})
+			return {
+				name: mappedItem.name,
+				owner: mappedItem.owner,
+				creation: mappedItem.creation,
+				docstatus: mappedItem.docstatus,
+				workflow_state: is_active.value ? mappedItem.workflow_state : null,
+				amended_from_value: isSubmittable ? 1 : 0,
+				status: is_active.value ? null : mappedItem.status ? mappedItem.status : null, 
+			};
+		});
+		store.setReport(reports.value)
 	})
 	.catch(error => {
 		const errorMessage =  error.message || error.response?.data?.message || 'Something went wrong';

@@ -87,9 +87,9 @@ const store = landingPage();
 const links = ref(store.links);
 
 
-onMounted( async() => {
-	const apiValue = await apiRetrival();
-	if(apiValue.data ) {
+onMounted( async () => {
+	const apiValue =  await apiRetrival();
+	if(apiValue) {
 		Object.values(apiValue.data).forEach((form) => {
 			const exists = links.value.some(link => link.doctype === form.doctype_name);
 				if (!exists){
