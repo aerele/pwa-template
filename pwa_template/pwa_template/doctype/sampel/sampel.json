@@ -6,7 +6,10 @@
  "engine": "InnoDB",
  "field_order": [
   "head",
-  "amended_from"
+  "datas",
+  "attach",
+  "amended_from",
+  "market"
  ],
  "fields": [
   {
@@ -14,6 +17,11 @@
    "fieldname": "head",
    "fieldtype": "Heading",
    "label": "Headers"
+  },
+  {
+   "fieldname": "datas",
+   "fieldtype": "Data",
+   "label": "Datas"
   },
   {
    "fieldname": "amended_from",
@@ -24,12 +32,23 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "attach",
+   "fieldtype": "Attach",
+   "label": "Attach"
+  },
+  {
+   "fieldname": "market",
+   "fieldtype": "Link",
+   "label": "Market",
+   "options": "Market Segment"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-22 18:12:51.028595",
+ "modified": "2024-08-14 18:14:00.697030",
  "modified_by": "Administrator",
  "module": "PWA Template",
  "name": "Sampel",

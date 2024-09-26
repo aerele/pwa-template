@@ -18,9 +18,11 @@ export default class Form extends EventEmitter {
     this.Amend = ref(0);
     this.workflowStatus = ref(false)
     this.workflow_state =ref('')
+    this.recordRetrieve = ref(0);
     this.roles = [];
     this.style = ref('')
     this.status = ref([])
+    this.child = ref(0)
     this.router = useRouter();
     this.transition = ref([]) 
     this.username = computed(() => session.user);
@@ -96,33 +98,34 @@ export default class Form extends EventEmitter {
     doctype.fetch()
     .then(() => {
         this.fields = doctype.data.fields;
-        this.submitable = doctype.data.is_submittable
+        this.submitable = doctype.data.is_submittable;
+        this.child = doctype.data.is_child_table;
         this.doc = {};
         if (this.name != null) {
-          const docValues = createListResource(
-            {
-              doctype: this.doctype,
-              fields: ['*'],
-              filters: {
-                name: this.name
-              },
-            }
-          )
+          const docValues = createResource({
+            url: `frappe.desk.form.load.getdoc`, 
+            method: 'GET', 
+            params: {
+              doctype: this.doctype, 
+              name: this.name,
+              _: Date.now()
+            },
+          })
           docValues.reload()
           .then(() => {
-            const fetchedData = docValues.data[0];
-            if(docValues.data[0].docstatus == 0){
-              this.Docstatus = docValues.data[0].docstatus;
+            const fetchedData = docValues.data.docs[0];
+            if(docValues.data.docs[0].docstatus == 0){
+              this.Docstatus = docValues.data.docs[0].docstatus;
               this.Saved = 1
             }
-            else if(docValues.data[0].docstatus == 1 || docValues.data[0].docstatus == 2){
-              this.Docstatus = docValues.data[0].docstatus;
+            else if(docValues.data.docs[0].docstatus == 1 || docValues.data.docs[0].docstatus == 2){
+              this.Docstatus = docValues.data.docs[0].docstatus;
               this.Submit = 1;
               this.Saved = 1;
             }
 
             if(this.workflowStatus){
-              this.workflow_state = docValues.data[0].workflow_state
+              this.workflow_state = docValues.data.docs[0].workflow_state
               this.styles()
               
             }
@@ -169,7 +172,6 @@ export default class Form extends EventEmitter {
     workflowTransition.fetch()
     .then(() => {
       if(workflowTransition.data.length > 0){
-        // console.log(workflowTransition.data[0].state, workflowTransition.data[0].action);
         this.workflow_state = workflowTransition.data[0].state
         this.action = workflowTransition.data[0].action
         this.styles()
@@ -208,6 +210,7 @@ export default class Form extends EventEmitter {
       }
       this.actions(this.doc)
     });
+    this.recordRetrieve = 1
   }
   
   getValue(fieldname) {
@@ -218,6 +221,25 @@ export default class Form extends EventEmitter {
     this.dirty = true;
     this.doc[fieldname] = value;
   }
+
+  setTableValue(fieldname, value, table, index) {
+      if (!this.doc[table]) {
+          this.doc[table] = [];
+      }
+      if (!this.doc[table][index]) {
+          this.doc[table][index] = {};
+      }
+      this.doc[table][index][fieldname] = value;
+  }
+
+  removeTableVale(table, index) {
+    if (Array.isArray(this.doc[table])) {
+        this.doc[table].splice(index, 1);
+    }
+}
+
+
+  
 
   isNew() {
     return !!this.name;

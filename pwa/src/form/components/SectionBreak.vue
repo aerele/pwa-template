@@ -27,6 +27,7 @@
   import Float from './Float.vue'
   import Link from './Link.vue'
   import Currency from './Currency.vue'
+  import Childtable from './Childtable.vue'
   
   const { field, frm } = defineProps(['field', 'frm'])
   
@@ -47,6 +48,7 @@
     Float: Float,
     Link: Link,
     Currency: Currency,
+    Table: Childtable,
   }
   
   const sectionFields = computed(() => {

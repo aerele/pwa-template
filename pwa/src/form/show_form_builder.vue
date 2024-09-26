@@ -46,7 +46,7 @@
 			<transition name="slide-up">
 					<div
 						v-if="showContainer"
-						class="fixed bottom-0 left-0 w-full sm:w-96 h-1/4 bg-white p-4 rounded-t-lg border-t-[0.5px] border-gray-300"
+						class="w-full sm:w-96 fixed bottom-0 left-0 h-[15%] bg-white border-t border-gray-300 shadow-lg z-[1000] flex flex-col touch-area rounded-t-md"
 					>
 					<div>
 						<div class=" w-full border-b-[0.5px] border-gray-300 flex text-center justify-center touchable hover:cursor-pointer" @click="handelAction">
@@ -58,7 +58,7 @@
 					</div>
 					</div>
 			</transition>
-
+			<div v-if="showContainer" class="fixed inset-0 bg-black opacity-50 z-[999] w-full sm:w-96" @click="showContainer = false"></div>
 			<div class="flex w-full sm:w-96 pl-3 pb-1 pt-1 fixed bottom-0 z-10 bg-white justify-center shadow-lg">
 				<Dialog
 					:options="{
@@ -249,6 +249,7 @@ import Float from './components/Float.vue';
 import Link from './components/Link.vue';
 import User from './components/User.vue';
 import Currency from './components/Currency.vue';
+import Childtable from './components/Childtable.vue';
 import { useRouter } from 'vue-router';
 import { FeatherIcon, Dropdown, Button, Dialog } from 'frappe-ui';
 
@@ -278,6 +279,8 @@ const fieldMap = {
 	Link: Link,
 	Currency: Currency,
 	Attach: Attach,
+	Table: Childtable
+	
 };
 
 const loading = ref(false);
