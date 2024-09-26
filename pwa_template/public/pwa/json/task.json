@@ -1,0 +1,47 @@
+{
+	"pwa_form_fields": [
+        {
+            "label": "Subject",
+            "fieldname": "subject",
+            "fieldtype": "Data"
+        },
+        {
+            "label": "Status",
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "options":"Open\nCompleted\nCancelled"
+        },
+        {
+            "label": "Priority",
+            "fieldname": "priority",
+            "fieldtype": "Autocomplete",
+            "options": "High\nMedium\nLow"
+        },
+        {
+            "label": "Task Description",
+            "fieldname": "description   ",
+            "fieldtype": "Long Text"
+        },
+        {
+            "label": "Dependent Tasks",
+            "fieldname": "depends_on",
+            "fieldtype": "Table",
+            "options": [
+                {
+                    "fieldname": "task",
+                    "fieldtype": "Link",
+                    "label": "Task",
+                    "options": "Task"
+                },
+                {
+                    "fieldname": "subject",
+                    "fieldtype": "Text",
+                    "label": "Subject"
+                }
+            ]
+        }
+    ],
+	"form_name": "Task Todo",
+	"doctype_name": "Task",
+	"is_submittable": 0
+}
