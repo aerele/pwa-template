@@ -1,7 +1,10 @@
 <template>
     <div>
       <div class="p-2" v-if="!fileUploaded">
-        <p class=" text-[12px] text-gray-600 mb-1">{{field.label}}</p>
+        <div class=" flex">
+          <p class=" text-[12px] text-gray-600">{{field.label}}</p>
+          <p v-if="field.reqd == 1" class=" text-[12px] text-red-500 pl-1">*</p>
+        </div>
         <FileUploader
           :fileTypes="['image/*', 'application/pdf']"
           :validateFile="(fileObject) => {}"
@@ -34,7 +37,7 @@
       </div>
   
       <!-- Existing Dialog for file preview -->
-      <Dialog v-model="dialogVisible">
+      <Dialog v-model="dialogVisible" class=" z-[200]">
         <template #body-title>
           <h3 class="font-semibold truncate w-[10rem]">{{ File.file_name }}</h3>
         </template>
@@ -62,7 +65,7 @@
       </Dialog>
   
       <!-- Confirmation Dialog -->
-      <Dialog v-model="confirmationDialogVisible">
+      <Dialog v-model="confirmationDialogVisible" class=" z-[210]">
         <template #body-title>
           <h3 class="font-semibold">Confirm Deletion</h3>
         </template>
@@ -87,8 +90,18 @@
   import { FileUploader, Button, FeatherIcon, Dialog, createDocumentResource, createListResource } from 'frappe-ui';
   import { reactive, ref, computed, defineProps, watch } from 'vue';
   
+  const { field, frm, table, idx, idexValue, doctypeAttach } = defineProps(['field', 'frm', 'table', 'idx', 'idexValue', 'doctypeAttach'])
 
-  const { field, frm } = defineProps(['field', 'frm'])
+  const Value = ref('')
+
+  if(idexValue >= 0){
+    let values = frm.doc[table][idexValue][field.fieldname]
+    Value.value = values
+  }
+  else{
+    Value.value = field.fieldname
+  }
+
 
   const File = reactive({
     content_hash: '',
@@ -112,18 +125,19 @@
     uploaded_to_dropbox: 0,
     uploaded_to_google_drive: 0,
   });
+  // console.log(frm.doctype, field.fieldname, frm.name)
+  // console.log(field)
 
   if (frm.name) {
   const values = createListResource({
     doctype: 'File',
     filters: { 
-      "attached_to_doctype": frm.doctype,
-      "attached_to_field": field.fieldname,
-      "attached_to_name": frm.name
+      "file_url": Value.value
     },
     fields: ["*"]
   });
 
+  // console.log(doctypeAttach)
   values.reload()
     .then(() => {
       if (values.data.length > 0) {
@@ -216,18 +230,48 @@
 
 
     watch(File, (newFile) => {
-        frm.setValue(field.fieldname, newFile.file_url)
+      if(table){
+          if(idexValue >= 0 ){
+            frm.setTableValue(field.fieldname, newFile.file_url, table, idexValue)
+          }
+          else{
+            frm.setTableValue(field.fieldname, newFile.file_url, table, idx)
+          }
+        } 
+        else{
+          frm.setValue(field.fieldname, newFile.file_url)
+        }
+        // frm.setValue(field.fieldname, newFile.file_url)
         frm.attachValues.push({
             "name": newFile.name,
             "FeildName": field.fieldname
         });
-        if(field.value){
-          if (frm.doc[field.fieldname] != field.value) {
-            field.value = null;
-            frm.Saved = 0;
-
-            frm.Submit = 0;
-            frm.Amend = 0;
+        if(newFile){
+          if(table){
+            if(idexValue >= 0 ){
+              if(frm.doc[table][idexValue][field.fieldname] != field.value){
+                field.value = null
+                frm.Saved = 0;
+                frm.Submit = 0;
+                frm.Amend = 0;
+              }
+            }
+            else{
+              if(frm.doc[table][idx][field.fieldname] != field.value){
+                field.value = null
+                frm.Saved = 0;
+                frm.Submit = 0;
+                frm.Amend = 0;
+              }
+            }
+          }
+          else{
+            if (frm.doc[field.fieldname] != field.value) {
+                field.value = null
+                frm.Saved = 0;
+                frm.Submit = 0;
+                frm.Amend = 0;
+            }
           }
         }
     })    

@@ -1,5 +1,9 @@
 <template>
   <div class="p-2">
+    <div class=" flex">
+      <p class=" text-[12px] text-gray-600">{{field.label}}</p>
+      <p v-if="field.reqd == 1" class=" text-[12px] text-red-500 pl-1">*</p>
+    </div>
     <TextInput
       :type="'text'"
       size="sm"
@@ -48,12 +52,32 @@ watch(value, (newValue) => {
     frm.setValue(field.fieldname, newValue)
   } 
 
-  if(field.value){
-    if (frm.doc[field.fieldname] != field.value) {
-      field.value = null;
-      frm.Saved = 0;
-      frm.Submit = 0;
-      frm.Amend = 0;
+  if(newValue){
+    if(table){
+      if(idexValue >= 0 ){
+        if(frm.doc[table][idexValue][field.fieldname] != field.value){
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+        }
+      }
+      else{
+        if(frm.doc[table][idx][field.fieldname] != field.value){
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+        }
+      }
+    }
+    else{
+      if (frm.doc[field.fieldname] != field.value) {
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+      }
     }
   }
 

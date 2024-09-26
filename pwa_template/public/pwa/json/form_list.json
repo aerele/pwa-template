@@ -1,0 +1,14 @@
+{
+    "form_list":[
+        {
+            "form_name": "Test Form",
+            "doctype_name": "Customer",
+            "file_name": "test_form.json"
+        },
+        {
+            "form_name": "Task",
+            "doctype_name": "Task",
+            "file_name": "task.json"
+        }
+    ]
+}

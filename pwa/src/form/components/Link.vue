@@ -1,6 +1,9 @@
 <template>
   <div class="p-2">
-    <p class=" text-[12px] text-gray-600">{{field.label}}</p>
+    <div class=" flex">
+      <p class=" text-[12px] text-gray-600">{{field.label}}</p>
+      <p v-if="field.reqd == 1" class=" text-[12px] text-red-500 pl-1">*</p>
+    </div>
     <div class="relative w-full mt-1">
       <FormControl
         :type="'text'"
@@ -41,7 +44,9 @@ import { ref, watch, computed, onMounted } from 'vue';
 import { FormControl, createResource } from "frappe-ui";
 import { defineProps } from 'vue';
 
-const { field, frm } = defineProps(['field', 'frm']);
+
+const { field, frm, table, idx, idexValue } = defineProps(['field', 'frm', 'table', 'idx', 'idexValue'])
+
 
 const inputValue = ref('');
 const showDropdown = ref(false);
@@ -53,14 +58,56 @@ watch(frm, (newFrm) => {
   }
 })
 
+if(idexValue >= 0){
+  let values = frm.doc[table][idexValue][field.fieldname]
+  inputValue.value = values
+}
+
 const isDisabled = computed(() => {
   return field.read_only == 1 || frm.Docstatus == 1 || frm.Docstatus == 2;
 });
 
 const selectOption = (option) => {
   inputValue.value = option.doctype_name;
-  field.value = option.name;
-  frm.setValue(field.fieldname, option.name);
+  if(table){
+    if(idexValue >= 0 ){
+      frm.setTableValue(field.fieldname, option.name, table, idexValue)
+    }
+    else{
+      frm.setTableValue(field.fieldname, option.name, table, idx)
+    }
+  } 
+  else{
+    frm.setValue(field.fieldname, option.name)
+  }
+  if(option.name){
+    if(table){
+      if(idexValue >= 0 ){
+        if(frm.doc[table][idexValue][field.fieldname] != field.value){
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+        }
+      }
+      else{
+        if(frm.doc[table][idx][field.fieldname] != field.value){
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+        }
+      }
+    }
+    else{
+      if (frm.doc[field.fieldname] != field.value) {
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+      }
+    }
+  }
   showDropdown.value = false;
 };
 

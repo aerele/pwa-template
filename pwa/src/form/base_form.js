@@ -1,8 +1,11 @@
-import { reactive, ref, computed, watch } from 'vue';
+import { reactive, ref, computed, watch, onMounted } from 'vue';
 import EventEmitter from './eventemiitor';
 import { useRouter } from 'vue-router';
 import { session } from '../data/session';
+import formLsit from '../../public/json/form_list.json'
 import { createListResource, createResource, createDocumentResource } from 'frappe-ui';
+import { retrieveFileJson } from '../utils/check';
+import { apiRetrival } from '../utils/apiRetrival';
 
 export default class Form extends EventEmitter {
   constructor(doctype, frm, name = null) {
@@ -12,6 +15,7 @@ export default class Form extends EventEmitter {
     this.fields = reactive([]);
     this.dirty = false;
     this.Frm = frm;
+    this.JSON = ref({})
     this.Docstatus = ref(0);
     this.Saved = ref(0);
     this.Submit = ref(0);
@@ -23,11 +27,14 @@ export default class Form extends EventEmitter {
     this.style = ref('')
     this.status = ref([])
     this.child = ref(0)
+    this.DoctypeError = ref('')
+    this.workflowError = ref('')
     this.router = useRouter();
     this.transition = ref([]) 
     this.username = computed(() => session.user);
     this.attachValues = reactive([]);
     this.action = ref('')
+    this.data = ref({})
     this.doc = reactive({
       docstatus: 0, 
     });
@@ -37,7 +44,8 @@ export default class Form extends EventEmitter {
       this.dirty = true;
     });
   }
-  async initFields() {
+
+  async initFields() {  
     const isworkflow = createListResource({
       doctype: "Workflow",
       fields: ['*'],
@@ -45,8 +53,8 @@ export default class Form extends EventEmitter {
         document_type: this.doctype
       },
     })
-
-    isworkflow.reload()
+    
+    isworkflow.reload() 
     .then(() => {
       isworkflow.data.forEach(data => {
         if(data.is_active){
@@ -65,78 +73,78 @@ export default class Form extends EventEmitter {
             this.status = workflowValues.data.docs[0].states
             this.transition = workflowValues.data.docs[0].transitions
           })
+        }
+      })
+    })
+
+    const apiData = await apiRetrival()
+
+    if(apiData.data){
+      apiData.data.forEach((data) => {
+        if(data.doctype_name == this.doctype){
+          const pwa_fields = JSON.parse(data.pwa_form_fields)
+          this.JSON = pwa_fields; 
+          this.data = this.JSON;
+          this.fields = this.JSON.pwa_form_fields;
+          this.submitable = this.JSON.is_submittable;
+          this.child = this.JSON.is_child_table;
+        }
+      })
+    }else{
+      formLsit.form_list.forEach(async (frm) => {
+        if (frm.form_name === this.Frm) {
+          
+          const fileJson = await retrieveFileJson(frm.doctype_name);
+          
+          this.JSON = fileJson; 
+          this.data = this.JSON;
+          this.fields = this.JSON.pwa_form_fields;
+          this.submitable = this.JSON.is_submittable;
+          this.child = this.JSON.is_child_table;
+        }
+      });
+    }
+
+    
+    
+
+    // const doctype = await exportedData(this.doctype);
+
+    this.doc = {};
+    if (this.name != null) {
+      const docValues = createResource({
+        url: `frappe.desk.form.load.getdoc`, 
+        method: 'GET', 
+        params: {
+          doctype: this.doctype, 
+          name: this.name,
+          _: Date.now()
+        },
+      })
+      docValues.reload()
+      .then(() => {
+        const fetchedData = docValues.data.docs[0];
+        if(docValues.data.docs[0].docstatus == 0){
+          this.Docstatus = docValues.data.docs[0].docstatus;
+          this.Saved = 1
+        }
+        else if(docValues.data.docs[0].docstatus == 1 || docValues.data.docs[0].docstatus == 2){
+          this.Docstatus = docValues.data.docs[0].docstatus;
+          this.Submit = 1;
+          this.Saved = 1;
+        }
+
+        if(this.workflowStatus){
+          this.workflow_state = docValues.data.docs[0].workflow_state
+          this.styles()
           
         }
+        Object.keys(fetchedData).forEach(key => {
+          this.doc[key] = fetchedData[key];
+        });
+        this.updateFields();
       })
-    })
-
-    const userDetails = createResource({
-      url: `frappe.desk.form.load.getdoc`, 
-      method: 'GET', 
-      params: {
-        doctype: 'User', 
-        name: this.username, 
-        _: Date.now()
-      },
-    });
-
-    userDetails.fetch()
-    .then(() => {
-      userDetails.data.docs[0].roles.forEach( datas => {
-        this.roles.push(datas.roles);
-      })
-    });
-
-    const doctype = createResource({
-      url: 'pwa_template.utils.get_form_meta',
-      method: 'POST',
-      params: {
-        form: this.Frm,
-        doctype: this.doctype,
-      },
-    })
-    doctype.fetch()
-    .then(() => {
-        this.fields = doctype.data.fields;
-        this.submitable = doctype.data.is_submittable;
-        this.child = doctype.data.is_child_table;
-        this.doc = {};
-        if (this.name != null) {
-          const docValues = createResource({
-            url: `frappe.desk.form.load.getdoc`, 
-            method: 'GET', 
-            params: {
-              doctype: this.doctype, 
-              name: this.name,
-              _: Date.now()
-            },
-          })
-          docValues.reload()
-          .then(() => {
-            const fetchedData = docValues.data.docs[0];
-            if(docValues.data.docs[0].docstatus == 0){
-              this.Docstatus = docValues.data.docs[0].docstatus;
-              this.Saved = 1
-            }
-            else if(docValues.data.docs[0].docstatus == 1 || docValues.data.docs[0].docstatus == 2){
-              this.Docstatus = docValues.data.docs[0].docstatus;
-              this.Submit = 1;
-              this.Saved = 1;
-            }
-
-            if(this.workflowStatus){
-              this.workflow_state = docValues.data.docs[0].workflow_state
-              this.styles()
-              
-            }
-            Object.keys(fetchedData).forEach(key => {
-              this.doc[key] = fetchedData[key];
-            });
-            this.updateFields();
-          })
-        }
-      }
-    ) 
+    }
   }
 
   workflow() {
@@ -208,7 +216,9 @@ export default class Form extends EventEmitter {
       if (this.doc.hasOwnProperty(field.fieldname)) {
         field.value = this.doc[field.fieldname];
       }
-      this.actions(this.doc)
+      if(this.workflowStatus){
+        this.actions(this.doc)
+      }
     });
     this.recordRetrieve = 1
   }
@@ -224,12 +234,12 @@ export default class Form extends EventEmitter {
 
   setTableValue(fieldname, value, table, index) {
       if (!this.doc[table]) {
-          this.doc[table] = [];
+        this.doc[table] = [];
       }
       if (!this.doc[table][index]) {
-          this.doc[table][index] = {};
+        this.doc[table][index] = {};
       }
-      this.doc[table][index][fieldname] = value;
+      this.doc[table][index][fieldname] = value;  
   }
 
   removeTableVale(table, index) {
@@ -246,12 +256,13 @@ export default class Form extends EventEmitter {
   }
 
   save() {
-    if (this.validateMandatory()) {
+    let validate = this.validateMandatory()
+    if (validate == true) {
       this.dirty = false;
       const savedoc = createListResource({
         doctype: this.doctype,
       });
-  
+
       const keysToRemove = [
         'creation', 'docstatus', 'idx', 
         'modified', 'modified_by', 'owner', 'doctype'
@@ -261,7 +272,7 @@ export default class Form extends EventEmitter {
       });
       
   
-      if(this.doc.name){
+      if(this.doc.name && this.Docstatus){
         let currentName = this.doc.name;
         this.doc.amended_from = currentName;
     
@@ -270,40 +281,124 @@ export default class Form extends EventEmitter {
         let newIncrement = nameParts.length > 1 ? parseInt(nameParts[1]) + 1 : 1;
         this.doc.name = `${baseName}-${newIncrement}`;
       }
-  
-      return savedoc.insert.submit(this.doc)
+
+      if(this.doc.name){
+        return savedoc.setValue.submit(this.doc)
         .then(response => {
           Object.assign(this.doc, response);
           this.Saved = 1;
           this.updateFields();
           this.name = this.doc.name;
           this.Docstatus = 0;
-          if(this.fields.some(field => field.fieldtype === 'Attach')){
-            this.attachValues.forEach((item) => {
-              if (item.FeildName) { 
-                const updateFile = createListResource({
+          this.fields.forEach(field => {
+            if (field.fieldtype === 'Attach') {
+              this.attachValues.forEach(item => {
+                if (item.FeildName === field.fieldname) {
+                  const updateFile = createListResource({
+                    doctype: 'File',
+                    filters: {
+                      name: item.name,
+                    }
+                  });
+                  updateFile.setValue.submit({
+                    name: item.name,
+                    attached_to_doctype: this.doctype,
+                    attached_to_name: response.name,
+                    attached_to_field: item.FeildName
+                  });
+                  updateFile.fetch();
+                }
+              });
+            } else if (typeof field.value === 'object' && field.value != null) {
+              field.value.forEach(childField => {
+                if (childField.fieldtype === 'Attach') {
+                  this.attachValues.forEach(item => {
+                    if (item.FeildName === childField.fieldname) {
+                      const updateFile = createListResource({
                         doctype: 'File',
                         filters: {
-                            name: item.name,
+                          name: item.name,  
                         }
-                    })
-                    updateFile.setValue.submit({
+                      });
+                      updateFile.setValue.submit({
                         name: item.name,
-                        "attached_to_doctype": this.doctype,
-                        "attached_to_name": response.name,
-                        "attached_to_field": item.FeildName
-                    })
-              }
-            });
-          }
+                        attached_to_doctype: this.doctype,
+                        attached_to_name: response.name,
+                        attached_to_field: item.FeildName
+                      });
+                      updateFile.fetch();
+                    }
+                  });
+                }
+              });
+            }
+          });
+          
           return response.name;
         })
         .catch(error => {
-          console.log(error);
-          throw new Error('Error saving document');
+          throw new Error('Something went wrong');
         });
+      }else{
+        return savedoc.insert.submit(this.doc)
+        .then(response => {
+          Object.assign(this.doc, response);
+          this.Saved = 1;
+          this.updateFields();
+          this.name = this.doc.name;
+          this.Docstatus = 0;
+          this.fields.forEach(field => {
+            if (field.fieldtype === 'Attach') {
+              this.attachValues.forEach(item => {
+                if (item.FeildName === field.fieldname) {
+                  const updateFile = createListResource({
+                    doctype: 'File',
+                    filters: {
+                      name: item.name,
+                    }
+                  });
+                  updateFile.setValue.submit({
+                    name: item.name,
+                    attached_to_doctype: this.doctype,
+                    attached_to_name: response.name,
+                    attached_to_field: item.FeildName
+                  });
+                  updateFile.fetch();
+                }
+              });
+            } else if (typeof field.value === 'object' && field.value != null) {
+              field.value.forEach(childField => {
+                if (childField.fieldtype === 'Attach') {
+                  this.attachValues.forEach(item => {
+                    if (item.FeildName === childField.fieldname) {
+                      const updateFile = createListResource({
+                        doctype: 'File',
+                        filters: {
+                          name: item.name,  
+                        }
+                      });
+                      updateFile.setValue.submit({
+                        name: item.name,
+                        attached_to_doctype: this.doctype,
+                        attached_to_name: response.name,
+                        attached_to_field: item.FeildName
+                      });
+                      updateFile.fetch();
+                    }
+                  });
+                }
+              });
+            }
+          });
+          
+          return response.name;
+        })
+        .catch(error => {
+          throw new Error('Something went wrong');
+        });
+      }
     } else {
-      return Promise.reject(new Error('Validation failed'));
+      return validate
     }
   }
 
@@ -312,7 +407,6 @@ export default class Form extends EventEmitter {
     delete docCopy.modified_by;
     delete docCopy.modified;
 
-    console.log(docCopy);
     const update = createListResource({
       doctype: this.doctype,
       filters: {
@@ -326,7 +420,8 @@ export default class Form extends EventEmitter {
   
   
   submit(name) {
-    if (this.validateMandatory()) {
+    let validate = this.validateMandatory()
+    if (validate == true) {
       this.dirty = false;
       const submitdoc = createListResource({
         doctype: this.doctype,
@@ -347,10 +442,10 @@ export default class Form extends EventEmitter {
         })
         .catch(error => {
           console.log(error);
-          throw new Error('Error submitting document');
+          throw new Error('Something went wrong');
         });
     } else {
-      return Promise.reject(new Error('Validation failed'));
+      return validate ;
     }
   }
   
@@ -437,12 +532,16 @@ export default class Form extends EventEmitter {
   }
 
   validateMandatory() {
+    const error = ref([])
     for (let field of this.fields) {
       if (field.reqd && !this.doc[field.fieldname]) {
-        alert(`Error: ${this.doctype} has no value in ${field.label}`);
-        return false;
+        error.value.push( `Error: value missing for ${this.doctype}: ${field.label}`)
       }
     }
-    return true;
+    if(error.value.length > 0) {
+      return error.value
+    }else{
+      return true
+    }
   }
 }

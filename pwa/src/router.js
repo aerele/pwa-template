@@ -18,6 +18,11 @@ const routes = [
     name: 'ForgetPassword',
     component: () => import('@/pages/ForgetPassword.vue'),
   },
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    component: () => import('@/form/components/Notifications.vue'),
+  },
   { 
     path: '/signup',
     name: 'SignUp',
@@ -42,6 +47,11 @@ const routes = [
     path: '/showform',
     name: 'Showform',
     component: () => import('@/pages/ShowForm.vue'),
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/form/components/About.vue'),
   },
 ];
 

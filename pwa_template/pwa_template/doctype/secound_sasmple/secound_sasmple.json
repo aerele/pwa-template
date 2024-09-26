@@ -1,0 +1,36 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-26 14:50:47.607754",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_w9qk",
+  "id"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_w9qk",
+   "fieldtype": "Section Break",
+   "label": "SALES"
+  },
+  {
+   "fieldname": "id",
+   "fieldtype": "Data",
+   "label": "ID"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-08-26 14:51:08.502297",
+ "modified_by": "Administrator",
+ "module": "PWA Template",
+ "name": "Secound Sasmple",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

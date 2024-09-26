@@ -6,33 +6,34 @@
 					<FeatherIcon class="w-8 h-8 text-gray-600 hover:text-black" name="chevron-left" @click="goBack" />
 					
 					<div :class="{'flex-1 text-center': !docName}">
-						<p class="font-semibold w-fit text-xl pr-2">{{ frm.doctype }}</p>
-						<p v-if="docName" class="pt-1 b-2 text-xs font-light text-gray-600">{{ docName }}</p>
+						<p class="font-semibold w-fit text-xl pr-2 truncate">{{ frm.doctype }}</p>
+						<div class=" flex">
+							<p v-if="docName" class="pt-1 b-2 text-xs font-light max-w-[9rem] text-gray-600 truncate">{{ docName }}</p>
+							<div v-if="props.frm.workflowStatus"  >
+								<div :class="styleClass">
+									<p :class="styleTextClass">{{ props.frm.workflow_state }}</p>
+								</div>
+							</div>	
+							<div v-else class=" pl-2">
+								<div :class="statusClass" >
+									<p :class="statusTextClass">{{ statusText }}</p>
+								</div>
+							</div>
+						</div>
 					</div>
 					
-					<div v-if="props.frm.workflowStatus">
-						<div :class="styleClass">
-							<p :class="styleTextClass">{{ props.frm.workflow_state }}</p>
-						</div>
-					</div>
-					<div v-else>
-						<div :class="statusClass">
-							<p :class="statusTextClass">{{ statusText }}</p>
-						</div>
-					</div>
 					
 					<div class="w-full flex justify-end">
 						<div class="p-1 pr-4">
-							<FeatherIcon class="w-6 h-6 text-gray-600 hover:text-black" name="bell" />
+							<FeatherIcon class="w-6 h-6 text-gray-600 hover:text-black hover:cursor-pointer" name="bell" @click="router.push('/notifications')" />
 						</div>
 						<User />
 					</div>
 				</div>
 			</div>
-			
 
 			<div class="flex-1 overflow-y-auto custom-scrollbar pt-20 pb-14 p-2 bg-gray-100">
-				<div class=" bg-white rounded-lg">
+				<div class=" bg-white p-2 rounded-lg">
 					<component
 						v-for="field in filteredFields"
 						:key="field.fieldname"para should align perfectly 
@@ -191,10 +192,20 @@
 						@click="handleSubmit"   
 						/>
 					</div>
-					<div v-if="saveResult" 
-							 :class="['fixed bottom-[4rem] leading-5 pr-[65rem] pl-[2.5rem] z-50 w-full sm:w-96', saveSuccess ? 'animate-slide-in' : 'animate-slide-out']">
+					<div v-if="typeof saveResult == 'object'" 
+						:class="['fixed bottom-[4rem] leading-5 pr-[60rem] pl-[2.5rem] z-50 w-[20rem] sm:w-96 animate-slide-in']">
+						<div v-for="(result, index) in saveResult" :key="index" 
+									class="rounded w-[20rem] h-fit p-2 text-left mb-2"
+									:class="{'bg-blue-200 text-blue-500': saveSuccess, 'bg-red-200 text-red-500': !saveSuccess}">
+							<FeatherIcon v-if="saveSuccess" name="check" class="inline w-4 h-4 mr-2" />
+							<FeatherIcon v-else name="x" class="inline w-4 h-4 mr-2" />
+							{{ result }}
+						</div>
+					</div>
+					<div v-else-if="saveResult" 
+						:class="['fixed bottom-[4rem] leading-5 pr-[60rem] pl-[2.5rem] z-50 w-[20rem] sm:w-96 animate-slide-in']">
 						<div class="rounded w-[20rem] h-fit p-2 text-left"
-								 :class="{'bg-blue-200 text-blue-500': saveSuccess, 'bg-red-200 text-red-500': !saveSuccess}">
+								:class="{'bg-blue-200 text-blue-500': saveSuccess, 'bg-red-200 text-red-500': !saveSuccess}">
 							<FeatherIcon v-if="saveSuccess" name="check" class="inline w-4 h-4 mr-2" />
 							<FeatherIcon v-else name="x" class="inline w-4 h-4 mr-2" />
 							{{ saveResult }}
@@ -335,21 +346,43 @@ props.frm.Frm = props.frmname
 const handleSave = async () => {
 	loading.value = true;
 	submitable.value = props.frm.submitable;
+
 	try {
-		await props.frm.update(); 
-		saveResult.value = 'Updated successful!';
-		saveSuccess.value = true;
-		formAfterSave.value = props.frm.doc;
-		if(props.frm.workflow){}
+		const name = await props.frm.save();
+
+		if (typeof name === "object") {
+			saveResult.value = name;
+		} else if (typeof name === "string") {
+			docName.value = name;
+			saveResult.value = "Save successful!";
+			saveSuccess.value = true;
+
+			if (submitable.value === 1) {
+				showSubmitButton.value = true;
+			}
+
+			formAfterSave.value = props.frm.doc;
+			router.push({
+				path: "/showform",
+				query: {
+					docname: name,
+					frmname: props.frm.Frm,
+					doctype: props.frm.doctype,
+				},
+			});
+		}
 	} catch (error) {
 		saveResult.value = `Error: ${error.message}`;
 		saveSuccess.value = false;
 		console.error(`Error: ${error.message}`);
 	} finally {
 		loading.value = false;
-		setTimeout(() => { saveResult.value = ''; }, 2500);
+		setTimeout(() => {
+			saveResult.value = "";
+		}, 2500);
 	}
 };
+
 
 
 const handleAmend = async () => {
@@ -374,10 +407,18 @@ const handleAmend = async () => {
 const confirmSubmit = async () => {
 	loading.value = true;
 	try {
-		docStatus.value = await props.frm.submit(docName.value);
-		saveResult.value = 'Submit successful!';
-		saveSuccess.value = true;
-		docStatus.value = 1
+		const Value = await props.frm.submit(docName.value);
+		if(typeof Value == 'object'){
+			saveSuccess.value = false;
+			docStatus.value = 0
+			saveResult.value = Value
+		}
+		else{
+			docStatus.value = Value
+			saveResult.value = 'Submit successful!';
+			saveSuccess.value = true;
+			docStatus.value = 1
+		}
 		dialog1.value = false;
 	} catch (error) {
 		saveResult.value = `Error: ${error.message}`;
@@ -430,64 +471,65 @@ const filteredFields = computed(() => {
 		}
 	}
 	return result;
-});
+});	
 
 
 const styleClass = computed(() => {
 	if(props.frm.style == 'Success'){
-		return 'bg-green-200 h-[2rem] rounded-2xl text-center';
+		return 'border-green-200 border-[0.5px] ml-2 rounded-2xl text-center';
 	}
 	else if(props.frm.style == 'Danger'){
-		return 'bg-red-200 h-[2rem] rounded-2xl text-center';
+		return 'border-red-200 border-[0.5px] ml-2 rounded-2xl text-center';
 	}
 	else if(props.frm.style == 'Inverse'){
-		return 'bg-black h-[2rem] rounded-2xl text-center';
+		return 'border-black border-[0.5px] ml-2 rounded-2xl text-center';
 	}
 	else if(props.frm.style == 'Warning'){
-		return 'bg-orange-200 h-[2rem] rounded-2xl text-center';
+		return 'border-orange-200 border-[0.5px] ml-2 rounded-2xl text-center';
 	}
 	else if(props.frm.style == 'Info'){
-		return 'bg-blue-200 h-[2rem] rounded-2xl text-center';
+		return 'border-blue-200 border-[0.5px] ml-2 rounded-2xl text-center';
 	}
 	else if(props.frm.style == 'Primary'){
-		return 'bg-[#9fa8da] h-[2rem] rounded-2xl text-center';
+		return 'border-[#9fa8da] border-[0.5px] ml-2 rounded-2xl text-center';
 	}
 	else{
-		return 'bg-gray-200 h-[2rem] rounded-2xl text-center';
+		return 'border-gray-500 border-[0.5px] ml-2 rounded-2xl text-center';
 	}
 })
 
 const styleTextClass = computed(() => {
 	if(props.frm.style == 'Success'){
-		return 'p-2 text-sm w-20 text-green-500';
+		return 'text-sm px-2 max-w-[6rem] truncate text-green-500';
 	}
 	else if(props.frm.style == 'Danger'){
-		return 'p-2 text-sm w-20 text-red-500';
+		return 'text-sm px-2 max-w-[6rem] truncate text-red-500';
 	}
 	else if(props.frm.style == 'Inverse'){
-		return 'p-2 text-sm w-20 text-white';
+		return 'text-sm px-2 max-w-[6rem] truncate text-white';
 	}
 	else if(props.frm.style == 'Warning'){
-		return 'p-2 text-sm w-20 text-orange-500';
+		return 'text-sm px-2 max-w-[6rem] truncate text-orange-500';
 	}
 	else if(props.frm.style == 'Info'){
-		return 'p-2 text-sm w-20 text-blue-500';
+		return 'text-sm px-2 max-w-[6rem] truncate text-blue-500';
 	}
 	else if(props.frm.style == 'Primary'){
-		return 'p-2 text-sm w-20 text-[#1a237e]';
+		return 'text-sm px-2 max-w-[6rem] truncate text-[#1a237e]';
 	}
 	else{
-		return 'p-2 text-sm w-20 text-gray-500';
+		return ' text-sm px-2 max-w-[6rem] truncate text-gray-500';
 	}
 })
 
 const statusText = computed(() => {
-	if(props.frm.submitable == 0){
+	if (props.frm.Saved === 0) {
+		return 'Not Saved';
+	}
+	else if(props.frm.submitable == 0){
 		return '';
 	}
-	else if (props.frm.Saved === 0) {
-		return 'Not Saved';
-	} else if (props.frm.Saved === 1) {
+	 else if (props.frm.Saved === 1) {
 		if (props.frm.submitable === 1 && props.frm.Submit !== 1) {
 			return 'Draft';
 		} else if (props.frm.Docstatus === 2) {
@@ -501,39 +543,41 @@ const statusText = computed(() => {
 });
 
 const statusClass = computed(() => {
-	if(props.frm.submitable == 0){
+	if (props.frm.Saved === 0) {
+		return 'border-red-500 border-[0.5px] rounded-2xl text-center';
+	}
+	else if(props.frm.submitable == 0){
 		return '';
 	}
-	else if (props.frm.Saved === 0) {
-		return 'bg-red-200 h-[2rem] rounded-2xl text-center';
-	} else if (props.frm.Saved === 1) {
+	 else if (props.frm.Saved === 1) {
 		if (props.frm.submitable === 1 && props.frm.Submit !== 1) {
-			return 'bg-red-200 h-[2rem] rounded-2xl text-center';
+			return 'border-red-500 border-[0.5px]  mr-1 rounded-2xl text-center';
 		} else if (props.frm.Docstatus === 2) {
-			return 'bg-red-200 rounded-2xl text-center';
+			return 'border-red-500 border-[0.5px] rounded-2xl text-center';
 		}else if (props.frm.Submit === 1) {
-			return 'bg-blue-200 h-[2rem] rounded-2xl text-center';
+			return 'border-blue-500 border-[0.5px] rounded-2xl text-center';
 		}  else {
-			return 'bg-blue-200 h-[2rem] rounded-2xl text-center';
+			return 'border-blue-500 border-[0.5px] rounded-2xl text-center';
 		}
 	}
 });
 
 const statusTextClass = computed(() => {
-	if(props.frm.submitable == 0){
+	if (props.frm.Saved === 0) {
+		return 'px-2 text-sm w-20 text-red-500';
+	}
+	else if(props.frm.submitable == 0){
 		return '';
 	}
-	else if (props.frm.Saved === 0) {
-		return 'p-2 text-sm w-20 text-red-500';
-	} else if (props.frm.Saved === 1) {
+	 else if (props.frm.Saved === 1) {
 		if (props.frm.submitable === 1 && props.frm.Submit !== 1) {
-			return 'p-2 text-sm w-20 text-red-500';
+			return ' px-2 w-fit text-[12px] text-red-600';
 		} else if (props.frm.Docstatus === 2) {
-			return 'p-2 text-sm w-20 text-red-500';
+			return 'px-2 text-[12px] w-20 text-red-500';
 		} else if (props.frm.Submit === 1) {
-			return 'p-2 text-sm w-20 text-blue-500';
+			return 'px-2 text-[12px] w-20 text-blue-500';
 		}  else {
-			return 'p-2 text-sm w-20 text-blue-500';
+			return 'px-2 text-[12px] w-20 text-blue-500';
 		}
 	}
 });
@@ -581,6 +625,7 @@ const dropdownOptions = computed(() => {
 });
 
 const router = useRouter();
+
 
 const goBack = () => {
 	props.frm.doc = {

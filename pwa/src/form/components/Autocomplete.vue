@@ -1,8 +1,11 @@
 <template>
   <div class="p-2">
-    <p class=" text-[12px] text-gray-600">{{field.label}}</p>
+    <div class=" flex">
+      <p class=" text-[12px] text-gray-600">{{field.label}}</p>
+      <p v-if="field.reqd == 1" class=" text-[12px] text-red-500 pl-1">*</p>
+    </div>
     <Autocomplete
-      :options="field.options"
+      :options="typeof field.options === 'string' ? field.options.split('\n') : field.options"
       v-model="field.value"
       size="sm"
       variant="subtle"
@@ -23,6 +26,7 @@ const { field, frm } = defineProps(['field', 'frm'])
 const isDisabled = computed(() => {
   return field.read_only == 1 || frm.Docstatus == 1 || frm.Docstatus == 2
 })
+
 
 watch(() => field.value, (newValue) => {
   const finalValue = newValue?.value ?? newValue;

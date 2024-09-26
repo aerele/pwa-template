@@ -15,3 +15,29 @@ export const useFormStore = defineStore('form', {
     }
   }
 });
+
+export const landingPage = defineStore('landingPage', {
+  state: () => ({     
+    links: [],                
+    options: [],     
+  }),
+  actions: {
+    setLinks(newLinks) {
+      this.links = newLinks;
+    },
+    setOptions(newOptions) {
+      this.options = newOptions;
+    },
+  }
+});
+
+export const listPage = defineStore('listPage', {
+  state: () => ({     
+    reports : [],    
+  }),
+  actions: {
+    setReport(newReport) {
+      this.reports = newReport;
+    },
+  }
+})

@@ -1,6 +1,9 @@
 <template>
   <div class="p-2">
-    <p class=" text-[12px] text-gray-600">{{field.label}}</p>
+    <div class=" flex">
+      <p class=" text-[12px] text-gray-600">{{field.label}}</p>
+      <p v-if="field.reqd == 1" class=" text-[12px] text-red-500 pl-1">*</p>
+    </div>
     <TextInput
       :type="'number'"
       size="sm"
@@ -17,7 +20,9 @@
 import { TextInput } from 'frappe-ui'
 import { defineProps, watch, ref, computed } from 'vue'
 
-const { field, frm } = defineProps(['field', 'frm'])
+// const { field, frm } = defineProps(['field', 'frm'])
+const { field, frm, table, idx, idexValue } = defineProps(['field', 'frm', 'table', 'idx', 'idexValue'])
+
 
 const value = ref('')
 
@@ -27,16 +32,52 @@ const isDisabled = computed(() => {
 
 watch(value, (newValue) => {
   const intValue = parseInt(newValue, 10)
-  frm.setValue(field.fieldname, isNaN(intValue) ? '' : intValue)
-  if(field.value){
-    if (frm.doc[field.fieldname] != field.value) {
-      field.value = null
-      frm.Saved = 0;
-      frm.Submit = 0;
-      frm.Amend = 0;
+  if(table){
+    if(idexValue >= 0 ){
+      frm.setTableValue(field.fieldname, isNaN(intValue) ? '' : intValue, table, idexValue)
+    }
+    else{
+      frm.setTableValue(field.fieldname, isNaN(intValue) ? '' : intValue, table, idx)
+    }
+  } 
+  else{
+    frm.setValue(field.fieldname, isNaN(intValue) ? '' : intValue)
+  } 
+  // frm.setValue(field.fieldname, isNaN(intValue) ? '' : intValue)
+  if(newValue){
+    if(table){
+      if(idexValue >= 0 ){
+        if(frm.doc[table][idexValue][field.fieldname] != field.value){
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+        }
+      }
+      else{
+        if(frm.doc[table][idx][field.fieldname] != field.value){
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+        }
+      }
+    }
+    else{
+      if (frm.doc[field.fieldname] != field.value) {
+          field.value = null
+          frm.Saved = 0;
+          frm.Submit = 0;
+          frm.Amend = 0;
+      }
     }
   }
 })
+
+if(idexValue >= 0){
+  let values = frm.doc[table][idexValue][field.fieldname]
+  value.value = values
+}
 
 watch(frm, (newFrm) => {
   if (field.value) {

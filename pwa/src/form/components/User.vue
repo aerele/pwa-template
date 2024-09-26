@@ -16,13 +16,16 @@
 </template>
 
 <script setup>
-import { h, ref, computed } from 'vue';
+import { h, ref, computed, watch } from 'vue';
 import { Avatar, Dropdown, FeatherIcon, createListResource } from 'frappe-ui';
 import { session } from '../../data/session';
+import { useRoute, useRouter } from 'vue-router';
 
 const userName = computed(() => session.user);
+const roles = computed(() => session.roles);
 const imageBaseUrl = ref('');
 const currentURL = ref(window.location.href);
+const router = useRouter()
 
 const baseURL = computed(() => {
   const url = new URL(currentURL.value);
@@ -30,7 +33,8 @@ const baseURL = computed(() => {
 });
 
 const ImageUrl = computed(() => {
-  return imageBaseUrl.value ? `${baseURL.value}:8001${imageBaseUrl.value}` : '';
+  // return imageBaseUrl.value ? `${baseURL.value}:8001${imageBaseUrl.value}` : '';
+  return imageBaseUrl.value ? `${baseURL.value}${imageBaseUrl.value}` : '';
 });
 
 const userDetails = createListResource({
@@ -53,7 +57,9 @@ const dropdownOptions = [
       {
         label: 'About',
         icon: () => h(FeatherIcon, { name: "alert-circle" }),
-        onClick: () => { /* Add your edit title logic here */ }
+        onClick: () => { 
+          router.push('about')
+         }
       },
       {
         label: 'Logout',
