@@ -60,8 +60,24 @@
 			</div>
 			<div v-else-if="selectedTab === 'Dashboard'">
 				<div class=" h-[28rem] w-full rounded-lg mt-2 overflow-y-auto no-scrollbar p-1">
-					<p>hi</p>
-				</div>
+					<div v-if="numberCardList.length > 0">
+						<div v-for="(row, rowIndex) in chunkArray(numberCardList, 2)" :key="rowIndex" class="flex w-full space-x-2 mb-2">
+							<div v-for="numberCard in row" :key="numberCard.name" class="flex-1">
+								<div class="p-2 px-3 h-[4rem] bg-white rounded-md border border-gray-300 shadow-sm">
+									<p class="text-[10px] font-medium text-gray-600 truncate">{{ numberCard.name }}</p>
+									<p 
+										class="text-xl  mt-2 truncate"
+										:class="numberCard.colorText"
+									>{{ numberCard.value }}</p>
+								</div>
+							</div>
+							<div v-if="row.length < 2" class="flex-1"></div>
+						</div>	
+					</div>
+					<div v-else class=" flex justify-center items-center h-full w-full">
+                        <p class="text-gray-500 text-md font-medium text-center">No Number Card data available</p>
+                    </div>
+				</div>	
 			</div>
 		  </div>
 		</div>
@@ -79,17 +95,7 @@
 		<div class='fixed bottom-0 w-full sm:w-96 bg-white h-14 shadow-lg z-10 rounded-t-md'>
 			<div class="p-2 flex w-full items-center h-full">
 				<div class="flex items-center w-full justify-between">
-					<div class=" flex flex-col h-full w-[50%] items-center justify-center"
-						 :class="selectedTab === 'Quick Link' ? 'text-gray-600  text-md font-bold' : 'text-gray-500 text-sm font-medium'"
-					>
-						<FeatherIcon class="w-4" name="link"   />
-						<p 
-							class="cursor-pointer"
-							@click="selectedTab = 'Quick Link'"
-						>
-							Quick Link
-						</p>
-					</div>
+					
 					<div class=" flex flex-col h-full w-[50%] items-center justify-center"
 						 :class="selectedTab === 'Dashboard' ? 'text-gray-600  text-md font-bold' : 'text-gray-500 text-sm font-medium'"
 					>
@@ -101,6 +107,20 @@
 							Dashboard
 						</p>
 					</div>
+
+					<div class=" flex flex-col h-full w-[50%] items-center justify-center"
+						 :class="selectedTab === 'Quick Link' ? 'text-gray-600  text-md font-bold' : 'text-gray-500 text-sm font-medium'"
+					>
+						<FeatherIcon class="w-4" name="link"   />
+						<p 
+							class="cursor-pointer"
+							@click="selectedTab = 'Quick Link'"
+						>
+							Quick Link
+						</p>
+					</div>
+
+
 				</div>
 			</div>
 		</div>
@@ -110,18 +130,19 @@
 <script setup>
 import { ref, watch , onMounted, computed} from 'vue';
 import User from "../form/components/User.vue";
-import { FeatherIcon, FormControl, createListResource, createResource } from "frappe-ui";
+import { FeatherIcon, FormControl, createListResource, createDocumentResource, createResource } from "frappe-ui";
 import { useRouter } from 'vue-router';
 import { retrieveDoc } from '../utils/check';
 import { landingPage } from '../stores/formStore';
 import formList from '../../public/json/form_list.json'
 import { retrieveFileJson } from '../utils/check';
 import { apiRetrival } from '../utils/apiRetrival'
+import { method } from 'lodash';
 
 
 const store = landingPage();
 const links = ref(store.links);
-const selectedTab = ref('Quick Link');
+const selectedTab = ref('Dashboard');
 
 onMounted( async () => {
 	const apiValue =  await apiRetrival();
@@ -165,6 +186,9 @@ const Name = ref('');
 const filterValue = ref('')
 const Error = ref()
 const ifError = ref(false)
+const numberCardDocs = ref(['Total Outgoing Bills', 'Total Outgoing Payment', 'Total Incoming Payment', 'Total Incoming Bills'])
+const numberCardList = ref([])
+
 
 retrieveFileJson()
 
@@ -181,11 +205,44 @@ watch(inputValue, (newValue) => {
   options.value = filteredLinks.value;
 });
 
+function chunkArray(arr, size) {
+	return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+		arr.slice(i * size, i * size + size)
+	);
+}
+
 
 const close = () => {
 	ifError.value = false
 }
 
+
+const getNumberCardDetails = async (docname) => {
+	try {
+		const numberCardValue = await createResource(
+			{
+				url: 'pwa_template.api.get_number_card_details',
+				params: {
+					docname: docname
+				},
+			}
+		)
+		await numberCardValue.fetch()
+		if ( numberCardValue.data.data){
+			numberCardList.value.push(numberCardValue.data.data)
+		}
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+
+const get_numebr_cards = () => {
+    numberCardDocs.value.forEach(async (docname) => {
+        await getNumberCardDetails(docname)
+    })
+}
+get_numebr_cards()
 
 const selectOption = async (option) => {
 
