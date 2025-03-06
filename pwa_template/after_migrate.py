@@ -56,6 +56,7 @@ def import_forms(file_path):
 			frappe.qb.update(doctype_table).set(doctype_table.document_hash_value, calculated_hash).where(
 				(doctype_table.form_name == doc["form_name"]) & (doctype_table.doctype_name == doc["doctype_name"])
 			).run()
+
 def create_form_records(docdict):
 	overall_json = dict(docdict)
 	

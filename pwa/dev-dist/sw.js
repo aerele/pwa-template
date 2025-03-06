@@ -78,11 +78,14 @@ define(['./workbox-51d6c265'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
+    "url": "frappe-push-notification.js",
+    "revision": "68dd100d65729e05c92eb42a006b25ee"
+  }, {
     "url": "registerSW.js",
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.vvvqnribli"
+    "revision": "0.37l2vu7pjug"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
