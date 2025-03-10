@@ -57,6 +57,7 @@ def get_number_card_details(docname: str) -> dict:
                 "name": doc.label.upper(),
                 "colorText": f'text-[{doc.color}]' if doc.color else 'text-gray-600',
                 "value": formatted_value,
+                "color": doc.color,
             }
         }
 
@@ -73,5 +74,6 @@ def get_number_card_details(docname: str) -> dict:
                 "name": doc.label.upper(),
                 "colorText": f'text-[{doc.color}]' if doc.color else 'text-gray-600',
                 "value": formatted_value,
+                "colorText": doc.color
             }
         }
