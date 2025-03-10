@@ -1,0 +1,82 @@
+{
+ "actions": [],
+ "autoname": "format:{form_name}-{doctype_name}",
+ "creation": "2025-03-07 17:58:37.380630",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "form_name",
+  "column_break_udhj",
+  "doctype_name",
+  "fields_section",
+  "pwa_dashboard_fields",
+  "more_info_section",
+  "document_hash_value"
+ ],
+ "fields": [
+  {
+   "fieldname": "form_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Form Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_udhj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "doctype_name",
+   "fieldtype": "Data",
+   "label": "DocType Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
+  },
+  {
+   "fieldname": "more_info_section",
+   "fieldtype": "Section Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "document_hash_value",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Document Hash Value"
+  },
+  {
+   "fieldname": "pwa_dashboard_fields",
+   "fieldtype": "JSON",
+   "label": "PWA Dashboard Fields",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-07 18:00:24.363001",
+ "modified_by": "Administrator",
+ "module": "PWA Template",
+ "name": "PWA Dashboard",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
