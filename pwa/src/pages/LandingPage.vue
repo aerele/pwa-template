@@ -160,15 +160,20 @@ const numberCardList = ref([])
 onMounted( async () => {
 	const apiValue =  await apiRetrival();
 	const DashBoardValue = await apiDashboardRetrival();
-	if(DashBoardValue) {
-        let response = JSON.parse(DashBoardValue.data[0]?.pwa_dashboard_fields)
-		response.pwa_form_fields.forEach((data) => {
-			if(data?.fieldname){
-				numberCardDocs.value.push(data.fieldname)
-			}
-		})
-		
-		get_numebr_cards()
+	if(DashBoardValue ) {
+		if(DashBoardValue.data.length > 0){
+			let response = JSON.parse(DashBoardValue.data[0]?.pwa_dashboard_fields)
+			response.pwa_form_fields.forEach((data) => {
+				if(data?.fieldname){
+					numberCardDocs.value.push(data.fieldname)
+				}
+			})
+			
+			get_numebr_cards()
+		} else {
+			selectedTab.value = 'Quick Link'
+			dashBoardPresent.value = false
+		}
     }
 	if(apiValue) {
 		Object.values(apiValue.data).forEach((form) => {
@@ -245,10 +250,6 @@ const getNumberCardDetails = async (docname) => {
 			dashBoardPresent.value = true
 			selectedTab.value  = "Dashboard"
 		}
-		else{
-            dashBoardPresent.value = false
-			selectedTab.value  = 'Quick Link'
-        }
 	} catch (error) {
 		console.error(error);
 	}
