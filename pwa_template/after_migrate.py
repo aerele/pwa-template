@@ -35,19 +35,22 @@ def import_forms(file_path):
 		if not isinstance(docs, list):
 			docs = [docs]
 		for doc in docs:
+			
 			stored_hash = None
 			if doc["form_name"] and doc["doctype_name"]:
-				try:
-					stored_hash = frappe.db.get_value("PWA Form",{"form_name":doc["form_name"],"doctype_name":doc["doctype_name"]}, "document_hash_value")
-				except Exception:
-					pass
+				if doc["doctype_name"] == "Dashboard":
+					stored_hash = get_stored_hash("PWA Dashboard", doc)
+				else:
+					stored_hash = get_stored_hash("PWA Form", doc)
+	 
 			if stored_hash and stored_hash == calculated_hash:
 				continue
 
 			#delete existing form if it exists
-			if frappe.db.exists("PWA Form", {"form_name":doc["form_name"],"doctype_name":doc["doctype_name"]}):
-				frappe.delete_doc("PWA Form", {"form_name":doc["form_name"],"doctype_name":doc["doctype_name"]}, force=1, for_reload=True)
-
+			check_doc_exists(
+				"PWA Dashboard" if doc["doctype_name"] == "Dashboard" else "PWA Form",
+				doc
+			)
 			#create new form
 			create_form_records(doc)
 
@@ -56,16 +59,31 @@ def import_forms(file_path):
 			frappe.qb.update(doctype_table).set(doctype_table.document_hash_value, calculated_hash).where(
 				(doctype_table.form_name == doc["form_name"]) & (doctype_table.doctype_name == doc["doctype_name"])
 			).run()
+   
+def get_stored_hash(doctype, doc):
+	try:
+		return frappe.db.get_value(doctype,{"form_name":doc["form_name"],"doctype_name":doc["doctype_name"]}, "document_hash_value")
+	except Exception:
+		return None
+
+def check_doc_exists(doctype, doc):
+	if doc := frappe.db.exists(doctype, {"form_name":doc["form_name"],"doctype_name":doc["doctype_name"]}):
+		frappe.delete_doc(doctype, doc, force=1, for_reload=True)
 
 def create_form_records(docdict):
 	overall_json = dict(docdict)
-	
+ 
+	DocType = "PWA Dashboard" if docdict["doctype_name"] == "Dashboard" else "PWA Form"
+ 		
 	docdict["__islocal"] = 1
-	docdict["doctype"] = "PWA Form"
+	docdict["doctype"] = DocType
 	docdict.pop("pwa_form_fields")
 
 	doc = frappe.get_doc(docdict)
-	doc.pwa_form_fields=json.dumps(overall_json,indent=4)
+	if docdict["doctype_name"] == "Dashboard":
+		doc.pwa_dashboard_fields=json.dumps(overall_json,indent=4)
+	else:
+		doc.pwa_form_fields=json.dumps(overall_json,indent=4)
 	doc.flags.ignore_version = True
 	doc.flags.ignore_links = True
 	doc.flags.ignore_validate = True

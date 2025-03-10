@@ -4,17 +4,19 @@
 			<div class="w-full sm:w-96 bg-white h-14 shadow-lg fixed top-0 z-10">
 				<div class=" flex px-2 items-center">
 					<FeatherIcon class="w-8 h-8 text-gray-600 hover:text-black" name="chevron-left" @click="goBack" />
-					<div class=" flex-1 text-center">
-						<p class="font-semibold min-w-[5rem] w-fit text-xl pt-[8px] pr-2">{{ frm.doctype }}</p>
-						<div>
-							<div :class="statusClass">
-								<p :class="statusTextClass">{{ statusText }}</p>
-							</div>
+					<div class="flex-1 text-center">
+						<p class="font-medium min-w-[5rem] w-full truncate text-md pt-[4px] pr-2">
+						  {{ frm.doctype }}
+						</p>
+						<div class="mt-1">
+						  <div :class="statusClass">
+							<p :class="statusTextClass">{{ statusText }}</p>
+						  </div>
 						</div>
 					</div>
 					<div class="w-full flex justify-end">
 						<div class="p-1 ">
-							<FeatherIcon class="w-6 h-6 text-gray-600 hover:text-black hover:cursor-pointer" name="bell"  @click="router.push('/notifications')"/>
+							<FeatherIcon class="w-6 h-6 mr-4 text-gray-600 hover:text-black hover:cursor-pointer" name="bell"  @click="router.push('/notifications')"/>
 						</div>
 						<User />
 					</div>

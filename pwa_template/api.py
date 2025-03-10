@@ -2,11 +2,6 @@ import frappe
 from erpnext import get_default_currency
 from frappe import _
 from frappe.desk.doctype.number_card.number_card import get_result
-@frappe.whitelist()
-def get_test(**kwargs):
-    res = {"value": float(120), "fieldtype": "Currency"}
-
-    return res
 
 def format_number(value: float) -> str:
     """
@@ -54,7 +49,6 @@ def get_number_card_details(docname: str) -> dict:
     if doc.type != "Custom":
         value = get_result(doc, doc.filters_json)
         formatted_value = format_number(value)
-
         if doc.function != "Count":
             formatted_value = f'{currency_doc.symbol} {formatted_value}'
 
@@ -63,6 +57,7 @@ def get_number_card_details(docname: str) -> dict:
                 "name": doc.label.upper(),
                 "colorText": f'text-[{doc.color}]' if doc.color else 'text-gray-600',
                 "value": formatted_value,
+                "color": doc.color,
             }
         }
 
@@ -79,5 +74,6 @@ def get_number_card_details(docname: str) -> dict:
                 "name": doc.label.upper(),
                 "colorText": f'text-[{doc.color}]' if doc.color else 'text-gray-600',
                 "value": formatted_value,
+                "colorText": doc.color
             }
         }
