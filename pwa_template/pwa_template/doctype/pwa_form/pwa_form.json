@@ -30,9 +30,8 @@
   },
   {
    "fieldname": "doctype_name",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "DocType Name",
-   "options": "DocType",
    "reqd": 1
   },
   {
@@ -77,7 +76,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-24 18:12:31.922136",
+ "modified": "2025-03-07 17:50:07.747874",
  "modified_by": "Administrator",
  "module": "PWA Template",
  "name": "PWA Form",
