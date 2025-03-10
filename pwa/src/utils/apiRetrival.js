@@ -10,3 +10,13 @@ export const apiRetrival = async () => {
     await doc.reload();
     return doc;
 }
+
+export const apiDashboardRetrival = async () => {
+    const doc = createListResource({
+        doctype: 'PWA Dashboard',
+        fields: ['*']
+    });
+    
+    await doc.reload();
+    return doc;
+}
