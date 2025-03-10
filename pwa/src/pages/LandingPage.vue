@@ -68,7 +68,7 @@
 								class="p-2 px-3 h-[5rem] w-full bg-white rounded-md border border-gray-300 shadow-sm flex flex-col justify-center"
 							>
 								<p class="text-[10px] font-medium text-gray-600 whitespace-normal break-words">{{ numberCard.name }}</p>
-								<p class="text-xl mt-2" :class="numberCard.colorText">{{ numberCard.value }}</p>
+								<p class="text-xl mt-2" :class="numberCard.colorText" :style="{ color: numberCard.color }" >{{ numberCard.value }}</p>
 							</div>
 						</div>
 					</div>
@@ -119,7 +119,6 @@
 							Quick Link
 						</p>
 					</div>
-
 
 				</div>
 			</div>
