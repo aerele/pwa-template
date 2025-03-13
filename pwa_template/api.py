@@ -34,8 +34,8 @@ def get_number_card_details(docname: str) -> dict:
     Returns:
         dict: Number card details including name, color, and value.
     """
-    if not docname:
-        frappe.log_error(title=_("PWA App"), message=_("Document name is required to fetch Number Card details"))
+    if not frappe.db.exists("Number Card", docname):
+        frappe.log_error(title=_("PWA App"), message=_("Document is missing"))
         return {"data": None}
 
     company_currency = get_default_currency()

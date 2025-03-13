@@ -1,0 +1,26 @@
+{
+    "form_name": "Number Card",
+    "name": "Number Card",
+    "doctype_name": "Dashboard",
+    "is_submittable": 0,
+    "pwa_form_fields": [
+        {
+            "fieldtype": "Number Card",
+            "fieldname": "Monthly Total Work Order",
+            "label": "Monthly Total Work Order",
+            "idx": 0
+        },
+        {
+            "fieldtype": "Number Card",
+            "fieldname": "Ongoing Job Card",
+            "label": "Ongoing Job Card",
+            "idx": 3
+        },
+        {
+            "fieldtype": "Number Card",
+            "fieldname": "Monthly Quality Inspection",
+            "label": "Monthly Quality Inspection",
+            "idx": 3
+        }
+    ]
+}

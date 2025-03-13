@@ -54,9 +54,10 @@
    "reqd": 1
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-07 18:00:24.363001",
+ "modified": "2025-03-13 17:54:59.522887",
  "modified_by": "Administrator",
  "module": "PWA Template",
  "name": "PWA Dashboard",
