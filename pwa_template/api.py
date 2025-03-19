@@ -41,7 +41,8 @@ def get_number_card_details(docname: str) -> dict:
     doc = frappe.get_doc("Number Card", docname)
 
     currency = doc.currency if doc.currency else None
-    currency_doc = frappe.get_doc("Currency", currency)
+    if currency and frappe.db.exists("Currency", currency):
+        currency_doc = frappe.get_doc("Currency", currency)
     
     if not doc:
         frappe.log_error(title=_("PWA App"), message=_(f"Number Card '{docname}' not found"))
